@@ -112,22 +112,6 @@
             color: #055160;
             border: 1px solid #b6effb;
         }
-
-        .media-player {
-            margin-top: 8px;
-            max-width: 100%;
-        }
-
-        .media-player video,
-        .media-player audio {
-            max-width: 100%;
-            border-radius: 8px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-        }
-
-        .media-player video {
-            max-height: 300px;
-        }
     </style>
 </head>
 
@@ -199,49 +183,32 @@
                 {% if files %}
                 <div class="list-group">
                     {% for f in files %}
-                    <div class="list-group-item file-item d-flex justify-content-between align-items-start flex-column">
-                        <div class="d-flex justify-content-between align-items-center w-100">
-                            <div class="d-flex align-items-center flex-grow-1">
-                                <i class="bi bi-file-earmark-play me-3 fs-4 text-primary"></i>
-                                <div class="file-info flex-grow-1">
-                                    <div class="text-break">
-                                        {{ f.name }}
-                                        {% if f.name.lower().endswith(('.mp4', '.mkv', '.avi', '.mov', '.webm', '.flv')) %}
-                                        <span class="file-type-badge badge-video"><i class="bi bi-camera-video-fill"></i> Video</span>
-                                        {% elif f.name.lower().endswith(('.m4a', '.mp3', '.aac', '.wav', '.flac', '.ogg', '.opus')) %}
-                                        <span class="file-type-badge badge-audio"><i class="bi bi-music-note-beamed"></i> Audio</span>
-                                        {% endif %}
-                                    </div>
-                                    <div class="file-meta">
-                                        <i class="bi bi-hdd"></i> {{ "%.2f"|format(f.size / 1024 / 1024) }} MB
-                                        &nbsp;|&nbsp;
-                                        <i class="bi bi-calendar3"></i> {{ f.created|int|strftime('%Y-%m-%d %H:%M') }}
-                                    </div>
+                    <div class="list-group-item file-item d-flex justify-content-between align-items-center">
+                        <div class="d-flex align-items-center flex-grow-1">
+                            <i class="bi bi-file-earmark-play me-3 fs-4 text-primary"></i>
+                            <div class="file-info flex-grow-1">
+                                <div class="text-break">
+                                    {{ f.name }}
+                                    {% if f.name.lower().endswith(('.mp4', '.mkv', '.avi', '.mov', '.webm', '.flv')) %}
+                                    <span class="file-type-badge badge-video"><i class="bi bi-camera-video-fill"></i> Video</span>
+                                    {% elif f.name.lower().endswith(('.m4a', '.mp3', '.aac', '.wav', '.flac', '.ogg', '.opus')) %}
+                                    <span class="file-type-badge badge-audio"><i class="bi bi-music-note-beamed"></i> Audio</span>
+                                    {% endif %}
+                                </div>
+                                <div class="file-meta">
+                                    <i class="bi bi-hdd"></i> {{ "%.2f"|format(f.size / 1024 / 1024) }} MB
+                                    &nbsp;|&nbsp;
+                                    <i class="bi bi-calendar3"></i> {{ f.created|int|strftime('%Y-%m-%d %H:%M') }}
                                 </div>
                             </div>
-                            <div class="btn-group ms-3" role="group">
-                                <a href="/download_file/{{ f.name }}" class="btn btn-success btn-sm" download>
-                                    <i class="bi bi-download"></i> Download
-                                </a>
-                                <a href="/delete/{{ f.name }}" class="btn btn-danger btn-sm" onclick="return confirm('Delete this file?')">
-                                    <i class="bi bi-trash"></i> Delete
-                                </a>
-                            </div>
                         </div>
-
-                        <!-- Media Player -->
-                        <div class="media-player w-100">
-                            {% if f.name.lower().endswith(('.mp4', '.webm', '.mov')) %}
-                            <video controls preload="metadata">
-                                <source src="/stream/{{ f.name }}" type="video/{{ f.name.split('.')[-1] }}">
-                                Your browser does not support the video tag.
-                            </video>
-                            {% elif f.name.lower().endswith(('.m4a', '.mp3', '.aac', '.wav', '.ogg', '.opus')) %}
-                            <audio controls preload="metadata">
-                                <source src="/stream/{{ f.name }}" type="audio/{{ 'mp4' if f.name.lower().endswith('.m4a') else f.name.split('.')[-1] }}">
-                                Your browser does not support the audio tag.
-                            </audio>
-                            {% endif %}
+                        <div class="btn-group ms-3" role="group">
+                            <a href="/download_file/{{ f.name }}" class="btn btn-success btn-sm" download>
+                                <i class="bi bi-download"></i> Download
+                            </a>
+                            <a href="/delete/{{ f.name }}" class="btn btn-danger btn-sm" onclick="return confirm('Delete this file?')">
+                                <i class="bi bi-trash"></i> Delete
+                            </a>
                         </div>
                     </div>
                     {% endfor %}
