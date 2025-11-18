@@ -16,12 +16,24 @@ def _jinja2_filter_datetime(timestamp, fmt='%Y-%m-%d %H:%M:%S'):
 def index():
     if request.method == "POST":
         url = request.form.get("url")
-        format_type = request.form.get("format", "mp4")
+        format_type = request.form.get("format", "mp4-720p")
         if url:
             # Format selection
             if format_type == "m4a":
                 format_arg = "bestaudio[ext=m4a]/bestaudio"
-            else:  # mp4
+            elif format_type == "best":
+                format_arg = "bestvideo+bestaudio/best"
+            elif format_type == "webm":
+                format_arg = "bestvideo[ext=webm]+bestaudio[ext=webm]/best[ext=webm]"
+            elif format_type == "mp4-720p":
+                format_arg = "bestvideo[height<=720][ext=mp4]+bestaudio[ext=m4a]/best[height<=720][ext=mp4]/best"
+            elif format_type == "mp4-480p":
+                format_arg = "bestvideo[height<=480][ext=mp4]+bestaudio[ext=m4a]/best[height<=480][ext=mp4]/best"
+            elif format_type == "mp4-360p":
+                format_arg = "bestvideo[height<=360][ext=mp4]+bestaudio[ext=m4a]/best[height<=360][ext=mp4]/best"
+            elif format_type == "mp4-240p":
+                format_arg = "bestvideo[height<=240][ext=mp4]+bestaudio[ext=m4a]/best[height<=240][ext=mp4]/best"
+            else:  # default to 720p
                 format_arg = "bestvideo[height<=720][ext=mp4]+bestaudio[ext=m4a]/best[height<=720][ext=mp4]/best"
             
             # Run yt-dlp
@@ -51,7 +63,7 @@ def index():
 @app.route("/download_with_progress", methods=["POST"])
 def download_with_progress():
     url = request.json.get("url")
-    format_type = request.json.get("format", "mp4")
+    format_type = request.json.get("format", "mp4-720p")
     
     if not url:
         return jsonify({"error": "No URL provided"}), 400
@@ -64,7 +76,19 @@ def download_with_progress():
         # Format selection
         if format_type == "m4a":
             format_arg = "bestaudio[ext=m4a]/bestaudio"
-        else:  # mp4
+        elif format_type == "best":
+            format_arg = "bestvideo+bestaudio/best"
+        elif format_type == "webm":
+            format_arg = "bestvideo[ext=webm]+bestaudio[ext=webm]/best[ext=webm]"
+        elif format_type == "mp4-720p":
+            format_arg = "bestvideo[height<=720][ext=mp4]+bestaudio[ext=m4a]/best[height<=720][ext=mp4]/best"
+        elif format_type == "mp4-480p":
+            format_arg = "bestvideo[height<=480][ext=mp4]+bestaudio[ext=m4a]/best[height<=480][ext=mp4]/best"
+        elif format_type == "mp4-360p":
+            format_arg = "bestvideo[height<=360][ext=mp4]+bestaudio[ext=m4a]/best[height<=360][ext=mp4]/best"
+        elif format_type == "mp4-240p":
+            format_arg = "bestvideo[height<=240][ext=mp4]+bestaudio[ext=m4a]/best[height<=240][ext=mp4]/best"
+        else:  # default to 720p
             format_arg = "bestvideo[height<=720][ext=mp4]+bestaudio[ext=m4a]/best[height<=720][ext=mp4]/best"
         
         process = subprocess.Popen([
@@ -153,6 +177,38 @@ def download_file(filename):
         download_name=filename,
         conditional=True,
         max_age=0
+    )
+
+@app.route("/stream/<filename>")
+def stream_file(filename):
+    from flask import send_file
+    
+    file_path = os.path.join(STORAGE, filename)
+    if not os.path.exists(file_path):
+        return "File not found", 404
+    
+    # Map file extensions to correct MIME types
+    ext = filename.lower().split('.')[-1]
+    mime_types = {
+        'mp4': 'video/mp4',
+        'webm': 'video/webm',
+        'mov': 'video/quicktime',
+        'm4a': 'audio/mp4',
+        'mp3': 'audio/mpeg',
+        'aac': 'audio/aac',
+        'wav': 'audio/wav',
+        'ogg': 'audio/ogg',
+        'opus': 'audio/opus',
+        'flac': 'audio/flac'
+    }
+    
+    mime_type = mime_types.get(ext, 'application/octet-stream')
+    
+    return send_file(
+        file_path,
+        mimetype=mime_type,
+        conditional=True,
+        as_attachment=False
     )
 
 @app.route("/delete/<filename>")

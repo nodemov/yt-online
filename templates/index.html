@@ -158,8 +158,13 @@
                         </div>
                         <div class="col-12 col-md-3">
                             <select id="format-select" name="format" class="form-select">
-                                <option value="mp4"><i class="bi bi-camera-video"></i> MP4 Video (≤720p)</option>
-                                <option value="m4a"><i class="bi bi-music-note"></i> M4A Audio</option>
+                                <option value="best">Best (No Conversion)</option>
+                                <option value="mp4-720p">MP4 Video (≤720p)</option>
+                                <option value="mp4-480p">MP4 Video (≤480p)</option>
+                                <option value="mp4-360p">MP4 Video (≤360p)</option>
+                                <option value="mp4-240p">MP4 Video (≤240p)</option>
+                                <option value="webm">WebM Video (Fast)</option>
+                                <option value="m4a">M4A Audio</option>
                             </select>
                         </div>
                         <div class="col-12 col-md-3">
@@ -228,12 +233,12 @@
                         <div class="media-player w-100">
                             {% if f.name.lower().endswith(('.mp4', '.webm', '.mov')) %}
                             <video controls preload="metadata">
-                                <source src="/download_file/{{ f.name }}" type="video/{{ f.name.split('.')[-1] }}">
+                                <source src="/stream/{{ f.name }}" type="video/{{ f.name.split('.')[-1] }}">
                                 Your browser does not support the video tag.
                             </video>
                             {% elif f.name.lower().endswith(('.m4a', '.mp3', '.aac', '.wav', '.ogg', '.opus')) %}
                             <audio controls preload="metadata">
-                                <source src="/download_file/{{ f.name }}" type="audio/{{ f.name.split('.')[-1] }}">
+                                <source src="/stream/{{ f.name }}" type="audio/{{ 'mp4' if f.name.lower().endswith('.m4a') else f.name.split('.')[-1] }}">
                                 Your browser does not support the audio tag.
                             </audio>
                             {% endif %}
