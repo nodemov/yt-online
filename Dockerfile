@@ -26,7 +26,9 @@ CMD ["gunicorn", \
     "--workers", "3", \
     "--threads", "2", \
     "--worker-class", "gthread", \
-    "--timeout", "600", \
+    "--timeout", "0", \
+    "--graceful-timeout", "30", \
+    "--keep-alive", "5", \
     "--max-requests", "1000", \
     "--max-requests-jitter", "100", \
     "--worker-tmp-dir", "/dev/shm", \

@@ -71,8 +71,24 @@ def download_with_progress():
 
 @app.route("/download_file/<filename>")
 def download_file(filename):
-    from flask import send_from_directory
-    return send_from_directory(STORAGE, filename, as_attachment=True)
+    from flask import send_file
+    import mimetypes
+    
+    file_path = os.path.join(STORAGE, filename)
+    if not os.path.exists(file_path):
+        return "File not found", 404
+    
+    # Determine MIME type
+    mime_type = mimetypes.guess_type(filename)[0] or 'application/octet-stream'
+    
+    return send_file(
+        file_path,
+        mimetype=mime_type,
+        as_attachment=True,
+        download_name=filename,
+        conditional=True,
+        max_age=0
+    )
 
 @app.route("/delete/<filename>")
 def delete_file(filename):
