@@ -21,6 +21,8 @@ def index():
             # Format selection
             if format_type == "m4a":
                 format_arg = "bestaudio[ext=m4a]/bestaudio"
+            elif format_type == "mp3":
+                format_arg = "bestaudio[ext=m4a]/bestaudio"
             elif format_type == "best":
                 format_arg = "bestvideo+bestaudio/best"
             elif format_type == "webm":
@@ -37,12 +39,22 @@ def index():
                 format_arg = "bestvideo[height<=720][ext=mp4]+bestaudio[ext=m4a]/best[height<=720][ext=mp4]/best"
             
             # Run yt-dlp
-            subprocess.run([
+            cmd = [
                 "yt-dlp",
                 "-f", format_arg,
                 "-o", f"{STORAGE}/%(title)s.%(ext)s",
                 url
-            ])
+            ]
+            
+            # Add postprocessor for MP3
+            if format_type == "mp3":
+                cmd.extend([
+                    "-x",  # Extract audio
+                    "--audio-format", "mp3",
+                    "--audio-quality", "0"  # Best quality
+                ])
+            
+            subprocess.run(cmd)
         return redirect(url_for("index"))
 
     # List downloaded files with metadata
@@ -76,6 +88,8 @@ def download_with_progress():
         # Format selection
         if format_type == "m4a":
             format_arg = "bestaudio[ext=m4a]/bestaudio"
+        elif format_type == "mp3":
+            format_arg = "bestaudio[ext=m4a]/bestaudio"
         elif format_type == "best":
             format_arg = "bestvideo+bestaudio/best"
         elif format_type == "webm":
@@ -91,13 +105,25 @@ def download_with_progress():
         else:  # default to 720p
             format_arg = "bestvideo[height<=720][ext=mp4]+bestaudio[ext=m4a]/best[height<=720][ext=mp4]/best"
         
-        process = subprocess.Popen([
+        cmd = [
             "yt-dlp",
             "-f", format_arg,
             "-o", f"{STORAGE}/%(title)s.%(ext)s",
             "--newline",
             url
-        ], stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, bufsize=1)
+        ]
+        
+        # Add postprocessor for MP3
+        if format_type == "mp3":
+            cmd.extend([
+                "-x",  # Extract audio
+                "--audio-format", "mp3",
+                "--audio-quality", "0"  # Best quality
+            ])
+        
+        process = subprocess.Popen(
+            cmd,
+            stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, bufsize=1)
         
         for line in process.stdout:
             # Parse progress from yt-dlp output
