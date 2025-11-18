@@ -56,6 +56,10 @@ def download_with_progress():
     if not url:
         return jsonify({"error": "No URL provided"}), 400
     
+    # Block YouTube Shorts
+    if "/shorts/" in url.lower() or "youtube.com/shorts" in url.lower():
+        return jsonify({"error": "YouTube Shorts are not supported"}), 400
+    
     def generate():
         # Format selection
         if format_type == "m4a":
@@ -91,6 +95,10 @@ def validate_url():
     
     if not url:
         return jsonify({"valid": False, "error": "No URL provided"}), 400
+    
+    # Block YouTube Shorts
+    if "/shorts/" in url.lower() or "youtube.com/shorts" in url.lower():
+        return jsonify({"valid": False, "error": "YouTube Shorts are not supported. Please use regular YouTube videos."})
     
     # Basic URL pattern check
     url_pattern = re.compile(
