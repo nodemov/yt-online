@@ -81,5 +81,17 @@ def delete_file(filename):
         os.remove(path)
     return redirect(url_for("index"))
 
+@app.route("/clear_all", methods=["POST"])
+def clear_all():
+    try:
+        files = os.listdir(STORAGE)
+        for filename in files:
+            file_path = os.path.join(STORAGE, filename)
+            if os.path.isfile(file_path):
+                os.remove(file_path)
+        return jsonify({"success": True, "message": "All files deleted"})
+    except Exception as e:
+        return jsonify({"success": False, "error": str(e)}), 500
+
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=8000)

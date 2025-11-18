@@ -69,7 +69,7 @@
                 <div class="alert alert-info d-flex align-items-center mb-3" role="alert">
                     <i class="bi bi-info-circle-fill me-2"></i>
                     <div>
-                        <strong>Supports:</strong> Single videos, Playlists, and Channels from YouTube and other platforms 😎
+                        <strong>Supports:</strong> Single videos, Playlists, and Channels from YouTube and other platforms
                     </div>
                 </div>
 
@@ -105,8 +105,13 @@
 
         <!-- Files List Card -->
         <div class="card">
-            <div class="card-header">
+            <div class="card-header d-flex justify-content-between align-items-center">
                 <h5 class="mb-0"><i class="bi bi-folder2-open"></i> Downloaded Files</h5>
+                {% if files %}
+                <button id="clear-all-btn" class="btn btn-danger btn-sm" onclick="clearAllFiles()">
+                    <i class="bi bi-trash3"></i> Clear All
+                </button>
+                {% endif %}
             </div>
             <div class="card-body">
                 {% if files %}
@@ -140,6 +145,20 @@
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script>
+        // Function to refresh file list without reloading the page
+        function refreshFileList() {
+            fetch('/')
+                .then(response => response.text())
+                .then(html => {
+                    const parser = new DOMParser();
+                    const doc = parser.parseFromString(html, 'text/html');
+                    const newFileList = doc.querySelector('.card-body .list-group')?.parentElement?.innerHTML ||
+                        doc.querySelector('.card-body').innerHTML;
+                    document.querySelector('.card:last-child .card-body').innerHTML = newFileList;
+                })
+                .catch(error => console.error('Error refreshing file list:', error));
+        }
+
         document.getElementById('download-form').addEventListener('submit', function (e) {
             e.preventDefault();
 
@@ -170,7 +189,10 @@
                             progressFill.style.width = '100%';
                             progressFill.textContent = '100% - Complete!';
                             setTimeout(() => {
-                                window.location.reload();
+                                // Refresh only the file list, not the whole page
+                                refreshFileList();
+                                progressContainer.style.display = 'none';
+                                document.getElementById('url-input').value = '';
                             }, 1500);
                             return;
                         }
@@ -185,7 +207,10 @@
                                     progressFill.style.width = '100%';
                                     progressFill.textContent = '100% - Complete!';
                                     setTimeout(() => {
-                                        window.location.reload();
+                                        // Refresh only the file list, not the whole page
+                                        refreshFileList();
+                                        progressContainer.style.display = 'none';
+                                        document.getElementById('url-input').value = '';
                                     }, 1500);
                                 } else if (data) {
                                     const percentage = parseFloat(data);
@@ -206,6 +231,33 @@
                 progressContainer.style.display = 'none';
             });
         });
+
+        // Function to clear all files
+        function clearAllFiles() {
+            if (!confirm('Are you sure you want to delete ALL files? This action cannot be undone!')) {
+                return;
+            }
+
+            fetch('/clear_all', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                }
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        refreshFileList();
+                        alert('All files have been deleted successfully!');
+                    } else {
+                        alert('Error deleting files: ' + data.error);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Failed to delete files. Please try again.');
+                });
+        }
     </script>
 </body>
 
