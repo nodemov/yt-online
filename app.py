@@ -85,6 +85,47 @@ def download_with_progress():
     
     return Response(generate(), mimetype='text/event-stream')
 
+@app.route("/validate_url", methods=["POST"])
+def validate_url():
+    url = request.json.get("url")
+    
+    if not url:
+        return jsonify({"valid": False, "error": "No URL provided"}), 400
+    
+    # Basic URL pattern check
+    url_pattern = re.compile(
+        r'^https?://'
+        r'(?:(?:[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?\.)+[A-Z]{2,6}\.?|'
+        r'localhost|'
+        r'\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})'
+        r'(?::\d+)?'
+        r'(?:/?|[/?]\S+)$', re.IGNORECASE)
+    
+    if not url_pattern.match(url):
+        return jsonify({"valid": False, "error": "Invalid URL format"})
+    
+    # Use yt-dlp to validate if the URL is supported
+    try:
+        result = subprocess.run([
+            "yt-dlp",
+            "--no-download",
+            "--no-playlist",
+            "--skip-download",
+            "--get-title",
+            url
+        ], capture_output=True, text=True, timeout=15)
+        
+        if result.returncode == 0 and result.stdout.strip():
+            title = result.stdout.strip().split('\n')[0]
+            return jsonify({"valid": True, "title": title})
+        else:
+            error_msg = result.stderr.strip() if result.stderr else "Unable to extract video info"
+            return jsonify({"valid": False, "error": error_msg})
+    except subprocess.TimeoutExpired:
+        return jsonify({"valid": False, "error": "Validation timeout - please try again"})
+    except Exception as e:
+        return jsonify({"valid": False, "error": str(e)})
+
 @app.route("/download_file/<filename>")
 def download_file(filename):
     from flask import send_file
