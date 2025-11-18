@@ -2,10 +2,15 @@ from flask import Flask, render_template, request, redirect, url_for, jsonify, R
 import os
 import subprocess
 import re
+from datetime import datetime
 
 STORAGE = "/data"
 
 app = Flask(__name__)
+
+@app.template_filter('strftime')
+def _jinja2_filter_datetime(timestamp, fmt='%Y-%m-%d %H:%M:%S'):
+    return datetime.fromtimestamp(timestamp).strftime(fmt)
 
 @app.route("/", methods=["GET", "POST"])
 def index():
@@ -28,8 +33,19 @@ def index():
             ])
         return redirect(url_for("index"))
 
-    # List downloaded files
-    files = os.listdir(STORAGE)
+    # List downloaded files with metadata
+    files = []
+    for filename in os.listdir(STORAGE):
+        file_path = os.path.join(STORAGE, filename)
+        if os.path.isfile(file_path):
+            stat = os.stat(file_path)
+            files.append({
+                'name': filename,
+                'size': stat.st_size,
+                'created': stat.st_ctime
+            })
+    # Sort by creation time, newest first
+    files.sort(key=lambda x: x['created'], reverse=True)
     return render_template("index.html", files=files)
 
 @app.route("/download_with_progress", methods=["POST"])
