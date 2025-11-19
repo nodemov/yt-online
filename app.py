@@ -43,6 +43,7 @@ def index():
                 "yt-dlp",
                 "-f", format_arg,
                 "-o", f"{STORAGE}/%(title)s.%(ext)s",
+                "--restrict-filenames",  # Replace problematic characters
                 url
             ]
             
@@ -109,6 +110,7 @@ def download_with_progress():
             "yt-dlp",
             "-f", format_arg,
             "-o", f"{STORAGE}/%(title)s.%(ext)s",
+            "--restrict-filenames",  # Replace problematic characters
             "--newline",
             url
         ]
