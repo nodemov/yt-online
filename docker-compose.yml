@@ -1,0 +1,14 @@
+version: "3.8"
+
+services:
+  yt-online:
+    build: .
+    container_name: yt-online
+    ports:
+      - "8000:8000"
+    volumes:
+      - yt-data:/data
+    restart: unless-stopped
+
+volumes:
+  yt-data:
